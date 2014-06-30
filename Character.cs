@@ -49,12 +49,12 @@ namespace Prototyping
 
         public BaseCharacter(AbilityScores baseAbilityScores, string name = "John Doe", Alignments alignment = Alignments.Neutral)
         {
-            Abilities.Strength.BaseScore = baseAbilityScores.AbilityScores1.Strength;
-            Abilities.Dexterity.BaseScore = baseAbilityScores.AbilityScores1.Dexterity;
-            Abilities.Constitution.BaseScore = baseAbilityScores.AbilityScores1.Constitution;
-            Abilities.Intelligence.BaseScore = baseAbilityScores.AbilityScores1.Intelligence;
-            Abilities.Wisdom.BaseScore = baseAbilityScores.AbilityScores1.Wisdom;
-            Abilities.Charisma.BaseScore = baseAbilityScores.AbilityScores1.Charisma;
+            Abilities.Strength.BaseScore = baseAbilityScores.Strength;
+            Abilities.Dexterity.BaseScore = baseAbilityScores.Dexterity;
+            Abilities.Constitution.BaseScore = baseAbilityScores.Constitution;
+            Abilities.Intelligence.BaseScore = baseAbilityScores.Intelligence;
+            Abilities.Wisdom.BaseScore = baseAbilityScores.Wisdom;
+            Abilities.Charisma.BaseScore = baseAbilityScores.Charisma;
 
             Init(name, alignment);
         }
@@ -109,34 +109,36 @@ namespace Prototyping
 
     public class AbilityScores
     {
-        public AbilityScores()
+        public AbilityScores() { }
+        private const int BaseAbilityScore = 10;
+        public AbilityScores(int strength = BaseAbilityScore, int dexterity = BaseAbilityScore, int constituion = BaseAbilityScore, int wisdom = BaseAbilityScore, int intelligence = BaseAbilityScore, int charisma = BaseAbilityScore)
         {
-            _abilityScores = new AbilityScores();
+            Strength = strength;
+            Dexterity = dexterity;
+            Constitution = constituion;
+            Wisdom = wisdom;
+            Intelligence = intelligence;
+            Charisma = charisma;
         }
 
-        public AbilityScores(int strength = AbilityScores.BaseAbilityScore, int dexterity = AbilityScores.BaseAbilityScore, int constituion = AbilityScores.BaseAbilityScore, int wisdom = AbilityScores.BaseAbilityScore, int intelligence = AbilityScores.BaseAbilityScore, int charisma = AbilityScores.BaseAbilityScore)
-        {
-            _abilityScores = new AbilityScores(strength, dexterity, constituion, wisdom, intelligence, charisma);
-        }
-
-        private readonly AbilityScores _abilityScores;
-
-        public AbilityScores AbilityScores1
-        {
-            get { return _abilityScores; }
-        }
+        public int Strength;
+        public int Dexterity;
+        public int Constitution;
+        public int Wisdom;
+        public int Intelligence;
+        public int Charisma;
     }
 
     public class Abilities
     {
         public Abilities(AbilityScores scores)
         {
-            Strength.BaseScore = scores.AbilityScores.Strength;
-            Dexterity.BaseScore = scores.AbilityScore1.Dexterity;
-            Constitution.BaseScore = scores.AbilityScore1.Constitution;
-            Wisdom.BaseScore = scores.AbilityScores.Wisdom;
-            Intelligence.BaseScore = scores.AbilityScore1.Intelligence;
-            Charisma.BaseScore = scores.AbilityScores.Charisma;
+            Strength.BaseScore = scores.Strength;
+            Dexterity.BaseScore = scores.Dexterity;
+            Constitution.BaseScore = scores.Constitution;
+            Wisdom.BaseScore = scores.Wisdom;
+            Intelligence.BaseScore = scores.Intelligence;
+            Charisma.BaseScore = scores.Charisma;
         }
         public StrengthAbility Strength = new StrengthAbility();
         public DexterityAbility Dexterity = new DexterityAbility();

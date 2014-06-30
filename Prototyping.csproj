@@ -50,7 +50,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AbilityScores.cs" />
     <Compile Include="Character.cs" />
     <Compile Include="Combat.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
