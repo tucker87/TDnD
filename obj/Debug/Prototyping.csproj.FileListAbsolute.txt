@@ -1,0 +1,5 @@
+D:\Home\Documents\GitHub\Prototyping\obj\Debug\Prototyping.csprojResolveAssemblyReference.cache
+D:\Home\Documents\GitHub\Prototyping\bin\Debug\Prototyping.dll
+D:\Home\Documents\GitHub\Prototyping\bin\Debug\Prototyping.pdb
+D:\Home\Documents\GitHub\Prototyping\obj\Debug\Prototyping.dll
+D:\Home\Documents\GitHub\Prototyping\obj\Debug\Prototyping.pdb
