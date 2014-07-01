@@ -6,27 +6,49 @@ namespace Prototyping
 {
     public class Attack
     {
-        //I Really like this. It allows for the characters to not know about 
-        //Combat rules but then the classes can't alter the rules.
-
-        //public Attack(int roll, Character attacker, Character target)
-        //{
-        //    var attackTotal = CalculateAttack(roll, attacker);
-
-        //    var targetAc = attacker.AttacksFlatFootedAc ? target.FlatFootedArmorClass : target.ArmorClass;
-
-        //    if (!CheckIfHit(attackTotal, targetAc)) return;
-        //    IsHit = true;
-        //    target.TakeDamage(CalculateDamage(roll, attacker));
-        //    attacker.GainExperience(10);
-        //}
-
-
-        public int CalculateAttack(int roll, Character attacker)
+        public Attack(int roll, Character attacker, Character target)
         {
-            var attackrAbilityMod = attacker.AttackBonusMod;
-            return roll + attackrAbilityMod + (attacker.Level / attacker.AttackPerLevelDivisor);
+            var attackTotal = CalculateAttack(roll, attacker, target);
+
+            var targetAc = attacker.AttacksFlatFootedAc ? target.FlatFootedArmorClass : target.ArmorClass;
+
+            if (!CheckIfHit(attackTotal, targetAc)) return;
+            IsHit = true;
+            target.TakeDamage(CalculateDamage(roll, attacker));
+            attacker.GainExperience(10);
         }
+
+
+        public int CalculateAttack(int roll, Character attacker, Character target)
+        {
+            var attackerAbilityMod = attacker.AttackBonusMod;
+            //Special Cases for Classes (Refactor when possible)
+            var classBonus = CalculateClassBonus(attacker, target);
+            //Special Cases for Races (Refactor when possible)
+            var raceBonus = CalculateRaceBonus(attacker, target);
+            return roll + attackerAbilityMod + classBonus + raceBonus + (attacker.Level / attacker.AttackPerLevelDivisor);
+        }
+
+        private static int CalculateClassBonus(Character attacker, Character target)
+        {
+            var classBonus = 0;
+            if (attacker.Class == null) return classBonus;
+            if (attacker.Class.ClassName != "Paladin") return classBonus;
+            if (target.Alignment == Character.Alignments.Evil)
+                classBonus = 2;
+            
+            return classBonus;
+        }
+        private static int CalculateRaceBonus(Character attacker, Character target)
+        {
+            var raceBonus = 0;
+            if (attacker.Race.RaceName != "Dwarf") return raceBonus;
+            if (target.Race.RaceName != "Orc") return raceBonus;
+                raceBonus = 2;
+
+            return raceBonus;
+        }
+
 
         public bool CheckIfHit(int attackTotal, int targetAc)
         {

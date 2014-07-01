@@ -1,4 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Diagnostics;
+using System.Dynamic;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Prototyping;
 
 namespace Prototyping
@@ -6,11 +9,11 @@ namespace Prototyping
     public abstract class Character
     {
         public abstract int HitPoints { get; }
-        public virtual int ArmorClass { get; set; }
-        public Class Class { get; set; }
+        public abstract int ArmorClass { get; }
         public virtual int FlatFootedArmorClass { get; set; }
         public virtual int Level { get; set; }
         public string Name { get; set; }
+        public Class Class { get; set; }
         public Race Race { get; set; }
 
         public bool IsDead;
@@ -27,6 +30,7 @@ namespace Prototyping
         public Alignments Alignment;
         public int CurrentDamage;
         public int Experience;
+        public int ArmorClassBonusFromRace;
 
         public abstract void GainExperience(int xp);
         public abstract void TakeDamage(int damage);
@@ -70,28 +74,34 @@ namespace Prototyping
             CritMultiplier = 2;
             AttackBonusMod = Abilities.Strength.Modifier;
             BaseDamage = 1;
+            Race = new Human(this);
         }
 
         private const int BaseAbilityScore = 10;
         private const int BaseArmorClass = 10;
-        private readonly Attack _attack = new Attack();
-
-        public override int HitPoints { get { return (BaseHitPoints + Abilities.Constitution.Modifier) * Level; } }
-        public override int ArmorClass { get { return BaseArmorClass + Abilities.Dexterity.Modifier + ArmorClassBonusFromClass; } }
+        //private readonly Attack _attack = new Attack();
+        private int BonusHpFromCon{get
+        {
+            return Race.RaceName == "Dwarf" ? (Abilities.Constitution.Modifier*2) : Abilities.Constitution.Modifier;
+        }}
+        public override int HitPoints { get { return (BaseHitPoints + BonusHpFromCon) * Level; } }
+        public override int ArmorClass { get { return BaseArmorClass + Abilities.Dexterity.Modifier + ArmorClassBonusFromRace + ArmorClassBonusFromClass; } }
         public override int FlatFootedArmorClass { get { return BaseArmorClass; } }
         public override int Level { get { return (Experience / 1000) + 1; } }
 
         public override bool Attack(int roll, Character target)
         {
-            var attackTotal = _attack.CalculateAttack(roll, this);
-            var targetAc = AttacksFlatFootedAc ? target.FlatFootedArmorClass : target.ArmorClass;
-            var hit = _attack.CheckIfHit(attackTotal, targetAc);
-            if (!hit) return false;
-            
-            var damage = _attack.CalculateDamage(roll, this);
-            target.TakeDamage(damage);
-            GainExperience(10);
-            return true;
+            var attack = new Attack(roll, this, target);
+            return attack.IsHit;
+            //var attackTotal = _attack.CalculateAttack(roll, this);
+            //var targetAc = AttacksFlatFootedAc ? target.FlatFootedArmorClass : target.ArmorClass;
+            //var hit = _attack.CheckIfHit(attackTotal, targetAc);
+            //if (!hit) return false;
+
+            //var damage = _attack.CalculateDamage(roll, this);
+            //target.TakeDamage(damage);
+            //GainExperience(10);
+            //return true;
         }
 
         public override void TakeDamage(int damage)
@@ -111,11 +121,11 @@ namespace Prototyping
     {
         public AbilityScores() { }
         private const int BaseAbilityScore = 10;
-        public AbilityScores(int strength = BaseAbilityScore, int dexterity = BaseAbilityScore, int constituion = BaseAbilityScore, int wisdom = BaseAbilityScore, int intelligence = BaseAbilityScore, int charisma = BaseAbilityScore)
+        public AbilityScores(int strength = BaseAbilityScore, int dexterity = BaseAbilityScore, int constitution = BaseAbilityScore, int wisdom = BaseAbilityScore, int intelligence = BaseAbilityScore, int charisma = BaseAbilityScore)
         {
             Strength = strength;
             Dexterity = dexterity;
-            Constitution = constituion;
+            Constitution = constitution;
             Wisdom = wisdom;
             Intelligence = intelligence;
             Charisma = charisma;
@@ -176,18 +186,7 @@ namespace Prototyping
     public sealed class WisdomAbility : Ability { }
     public sealed class IntelligenceAbility : Ability { }
     public sealed class CharismaAbility : Ability { }
-
-
-    public abstract class Race { }
-
-    public class Orc : Race
-    {
-        public Orc(Character character)
-        {
-            character.Abilities.Strength.RaceBonus = 2;
-        }
-    }
-
+    
     public abstract class Class : Character
     {
         private readonly Character _character;
@@ -196,6 +195,8 @@ namespace Prototyping
             _character = character;
         }
 
+        
+        public override int ArmorClass{ get { return _character.ArmorClass; } }
         public override int HitPoints { get { return _character.HitPoints; } }
 
         public override bool Attack(int roll, Character target)
@@ -211,6 +212,8 @@ namespace Prototyping
         {
             _character.TakeDamage(damage);
         }
+
+        public string ClassName = "";
     }
 
     public class Fighter : Class
@@ -248,206 +251,401 @@ namespace Prototyping
     {
         public Paladin(Character character) : base(character)
         {
+            ClassName = "Paladin";
             character.BaseHitPoints = 8;
         }
+    }
+
+    public abstract class Race : Character
+    {
+        private readonly Character _character;
+
+        protected Race(Character character)
+        {
+            _character = character;
+        }
+
+        public string RaceName { get; set; }
+
+        public override int ArmorClass{ get { return _character.ArmorClass; } }
+        public override int HitPoints { get { return _character.HitPoints; } }
 
         public override bool Attack(int roll, Character target)
         {
-            if (target.Alignment == Alignments.Evil)
-            base.Attack(roll, target);
-            return false;
+            return _character.Attack(roll, target);
+        }
+        public override void GainExperience(int xp)
+        {
+            _character.GainExperience(xp);
+        }
+
+        public override void TakeDamage(int damage)
+        {
+            _character.TakeDamage(damage);
+        }
+
+    }
+
+    public class Human : Race
+    {
+        public Human(Character character) : base(character)
+        {
+            RaceName = "Human";
+        }
+        
+    }
+
+    public class Orc : Race
+    {
+        public Orc(Character character) : base(character)
+        {
+            character.Abilities.Strength.RaceBonus = 2;
+            character.Abilities.Intelligence.RaceBonus = -1;
+            character.Abilities.Wisdom.RaceBonus = -1;
+            character.Abilities.Charisma.RaceBonus = -1;
+            
+            character.ArmorClassBonusFromRace = 2;
+
+            RaceName = "Orc";
+        }
+    }
+
+    public class Dwarf : Race
+    {
+        public Dwarf(Character character) : base(character)
+        {
+            character.Abilities.Constitution.RaceBonus = 1;
+            character.Abilities.Charisma.RaceBonus = -1;
+            RaceName = "Dwarf";
         }
     }
 }
 
 [TestClass]
-public class Testing
+public class CharacterTesting
 {
-    private Character _character;
-    private Character _enemy;
-
-    [TestInitialize]
-    public void Initialize()
+    [TestClass]
+    public class BaseCharacterTests
     {
-        _character = new BaseCharacter("John");
-        _enemy = new BaseCharacter("Not John");
-    }
+        private Character _character;
+        private Character _enemy;
 
-    [TestMethod]
-    public void CharactersCanHaveNames()
-    {
-        Assert.AreEqual("John", _character.Name);
-    }
-
-    [TestMethod]
-    public void CharactersAlignmentIsNeutralByDefault()
-    {
-        Assert.AreEqual(Character.Alignments.Neutral, _character.Alignment);
-    }
-
-    [TestMethod]
-    public void CharactersAlignmentCanBeSet()
-    {
-        var goodyTwoShoes = new BaseCharacter("Cleric", Character.Alignments.Good);
-        Assert.AreEqual(Character.Alignments.Good, goodyTwoShoes.Alignment);
-    }
-
-    [TestMethod]
-    public void AbilityScoresAre10ByDefault()
-    {
-        Assert.AreEqual(10, _character.Abilities.Strength.Score);
-    }
-
-    [TestMethod]
-    public void AbilityModifiersRangeFromOneToTwenty()
-    {
-        var abilities = new AbilityScores();
-        var cheater = new BaseCharacter(abilities);
-        Assert.AreEqual(1, cheater.Abilities.Strength.Score);
-    }
-
-    [TestMethod]
-    public void AbilityModifiersAreTwoWhenScoreIs14()
-    {
-        var abilities = new AbilityScores(14);
-        var strongAttacker = new BaseCharacter(abilities);
-        Assert.AreEqual(2, strongAttacker.Abilities.Strength.Modifier);
-    }
-
-    [TestMethod]
-    public void DexterityIsAddedToArmorClass()
-    {
-        var abilities = new AbilityScores(dexterity: 14);
-        var dexterousAttacker = new BaseCharacter(abilities);
-        Assert.AreEqual(12, dexterousAttacker.ArmorClass);
-    }
-
-    [TestMethod]
-    public void ConstitutionIsAddedToHitPoints()
-    {
-        var abilities = new AbilityScores(constituion: 12);
-        var toughAttacker = new BaseCharacter(abilities);
-        Assert.AreEqual(6, toughAttacker.HitPoints);
-    }
-
-    [TestMethod]
-    public void CharactersStartLevelOne()
-    {
-        Assert.AreEqual(1, _character.Level);
-    }
-
-    [TestMethod]
-    public void CharactersLevelUpWhenExperienceIsOneThousand()
-    {
-        for (var i = 0; i < 100; i++)
+        [TestInitialize]
+        public void Initialize()
         {
+            _character = new BaseCharacter("John");
+            _enemy = new BaseCharacter("Not John");
+        }
+
+        [TestMethod]
+        public void CharactersCanHaveNames()
+        {
+            Assert.AreEqual("John", _character.Name);
+        }
+
+        [TestMethod]
+        public void CharactersAlignmentIsNeutralByDefault()
+        {
+            Assert.AreEqual(Character.Alignments.Neutral, _character.Alignment);
+        }
+
+        [TestMethod]
+        public void CharactersAlignmentCanBeSet()
+        {
+            var goodyTwoShoes = new BaseCharacter("Cleric", Character.Alignments.Good);
+            Assert.AreEqual(Character.Alignments.Good, goodyTwoShoes.Alignment);
+        }
+
+        [TestMethod]
+        public void AbilityScoresAre10ByDefault()
+        {
+            Assert.AreEqual(10, _character.Abilities.Strength.Score);
+        }
+
+        [TestMethod]
+        public void AbilityModifiersRangeFromOneToTwenty()
+        {
+            var abilities = new AbilityScores();
+            var cheater = new BaseCharacter(abilities);
+            Assert.AreEqual(1, cheater.Abilities.Strength.Score);
+        }
+
+        [TestMethod]
+        public void AbilityModifiersAreTwoWhenScoreIs14()
+        {
+            var abilities = new AbilityScores(14);
+            var strongAttacker = new BaseCharacter(abilities);
+            Assert.AreEqual(2, strongAttacker.Abilities.Strength.Modifier);
+        }
+
+        [TestMethod]
+        public void DexterityIsAddedToArmorClass()
+        {
+            var abilities = new AbilityScores(dexterity: 14);
+            var dexterousAttacker = new BaseCharacter(abilities);
+            Assert.AreEqual(12, dexterousAttacker.ArmorClass);
+        }
+
+        [TestMethod]
+        public void ConstitutionIsAddedToHitPoints()
+        {
+            var abilities = new AbilityScores(constitution: 12);
+            var toughAttacker = new BaseCharacter(abilities);
+            Assert.AreEqual(6, toughAttacker.HitPoints);
+        }
+
+        [TestMethod]
+        public void CharactersStartLevelOne()
+        {
+            Assert.AreEqual(1, _character.Level);
+        }
+
+        [TestMethod]
+        public void CharactersLevelUpWhenExperienceIsOneThousand()
+        {
+            for (var i = 0; i < 100; i++)
+            {
+                //var attack = new Attack(18, _character, _enemy);
+                _character.Attack(18, _enemy);
+            }
+            Assert.AreEqual(2, _character.Level);
+        }
+
+        [TestMethod]
+        public void CharactersHaveFivePlusConModHpPerLevel()
+        {
+            var abilities = new AbilityScores(constitution: 12);
+            var toughCharacter = new BaseCharacter(abilities);
+            for (var i = 0; i < 100; i++)
+            {
+                //var attack = new Attack(18, toughCharacter, _enemy);
+                toughCharacter.Attack(18, _enemy);
+            }
+            Assert.AreEqual(12, toughCharacter.HitPoints);
+        }
+
+        [TestMethod]
+        public void AllCharactersRaceDefaultsToHuman()
+        {
+            Assert.AreEqual("Human", _character.Race.RaceName);
+        }
+    }
+
+    [TestClass]
+    public class FighterTests
+    {
+        private Character _character;
+        private Character _enemy;
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            _character = new BaseCharacter();
+            _character.Class = new Fighter(_character);
+
+            _enemy = new BaseCharacter();
+        }
+
+        [TestMethod]
+        public void FightersAttackGoesUpEveryLevel()
+        {
+
+            for (var i = 0; i < 100; i++)
+            {
+                //attack = new Attack(18, _character, _enemy);
+                _character.Attack(18, _enemy);
+            }
+            //attack = new Attack(10, _character, _enemy);
+            var hit = _character.Attack(10, _enemy);
+            Assert.IsTrue(hit);
+        }
+        
+        [TestMethod]
+        public void FightersGetTenHpPerLevel()
+        {
+
+            Assert.AreEqual(10, _character.HitPoints);
+        }
+    }
+
+    [TestClass]
+    public class MonkTests
+    {
+        private Character _monk;
+        private Character _enemy;
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            _monk = new BaseCharacter();
+            _monk.Class = new Monk(_monk);
+
+            _enemy = new BaseCharacter();
+        }
+
+        [TestMethod]
+        public void MonksGetSixHpPerLevel()
+        {
+            _monk.Class = new Monk(_monk);
+            for (var i = 0; i < 100; i++)
+            {
+                //var attack = new Attack(18, _character, _enemy);
+                _monk.Attack(18, _enemy);
+            }
+            Assert.AreEqual(12, _monk.HitPoints);
+        }
+
+        [TestMethod]
+        public void MonksDoThreeDamageOnAttack()
+        {
+            _monk.Class = new Monk(_monk);
             //var attack = new Attack(18, _character, _enemy);
-            _character.Attack(18, _enemy);
+            _monk.Attack(18, _enemy);
+            Assert.AreEqual(3, _enemy.CurrentDamage);
         }
-        Assert.AreEqual(2, _character.Level);
-    }
 
-    [TestMethod]
-    public void CharactersHaveFivePlusConModHpPerLevel()
-    {
-        var abilities = new AbilityScores(constituion: 12);
-        var toughCharacter = new BaseCharacter(abilities);
-        for (var i = 0; i < 100; i++)
+        [TestMethod]
+        public void MonksAddArmorClassToAc()
         {
-            //var attack = new Attack(18, toughCharacter, _enemy);
-            toughCharacter.Attack(18, _enemy);
+            var abilites = new AbilityScores(wisdom: 12);
+            var wiseCharacter = new BaseCharacter(abilites);
+            _monk.Class = new Monk(wiseCharacter);
+            Assert.AreEqual(11, wiseCharacter.ArmorClass);
         }
-        Assert.AreEqual(12, toughCharacter.HitPoints);
-    }
 
-    [TestMethod]
-    public void OrcsAddTwoToStrength()
-    {
-        _character.Race = new Orc(_character);
-        Assert.AreEqual(12, _character.Abilities.Strength.Score);
-    }
-
-    [TestMethod]
-    public void FightersAttackGoesUpEveryLevel()
-    {
-        _character.Class = new Fighter(_character);
-        for (var i = 0; i < 100; i++)
+        [TestMethod]
+        public void MonksDontAddNegativeWisdomToAc()
         {
-            //attack = new Attack(18, _character, _enemy);
-            _character.Attack(18, _enemy);
+            var abilites = new AbilityScores(wisdom: 8);
+            var wiseCharacter = new BaseCharacter(abilites);
+            _monk.Class = new Monk(wiseCharacter);
+            Assert.AreEqual(10, wiseCharacter.ArmorClass);
         }
-        //attack = new Attack(10, _character, _enemy);
-        var hit = _character.Attack(10, _enemy);
-        Assert.IsTrue(hit);
     }
 
-    [TestMethod]
-    public void FightersGetTenHpPerLevel()
+    //Paladin is missing tests.
+    [TestClass]
+    public class PaladinTests
     {
-        _character.Class = new Fighter(_character);
+        private Character _character;
+        private Character _enemy;
 
-        Assert.AreEqual(10, _character.HitPoints);
-    }
-
-    [TestMethod]
-    public void MonksGetSixHpPerLevel()
-    {
-        _character.Class = new Monk(_character);
-        for (var i = 0; i < 100; i++)
+        [TestInitialize]
+        public void Initialize()
         {
-            //var attack = new Attack(18, _character, _enemy);
-            _character.Attack(18, _enemy);
+            _character = new BaseCharacter();
+            _character.Class = new Paladin(_character);
+
+            _enemy = new BaseCharacter();
         }
-        Assert.AreEqual(12, _character.HitPoints);
-    }
 
-    [TestMethod]
-    public void MonksDoThreeDamageOnAttack()
-    {
-        _character.Class = new Monk(_character);
-        //var attack = new Attack(18, _character, _enemy);
-        _character.Attack(18, _enemy);
-        Assert.AreEqual(3, _enemy.CurrentDamage);
-    }
-
-    [TestMethod]
-    public void MonksAddArmorClassToAc()
-    {
-        var abilites = new AbilityScores(wisdom: 12);
-        var wiseCharacter = new BaseCharacter(abilites);
-        _character.Class = new Monk(wiseCharacter);
-        Assert.AreEqual(11, wiseCharacter.ArmorClass);
-    }
-
-    [TestMethod]
-    public void MonksDontAddNegativeWisdomToAc()
-    {
-        var abilites = new AbilityScores(wisdom: 8);
-        var wiseCharacter = new BaseCharacter(abilites);
-        _character.Class = new Monk(wiseCharacter);
-        Assert.AreEqual(10, wiseCharacter.ArmorClass);
-    }
-
-    [TestMethod]
-    public void PaladinsGetEightHpPerLevel()
-    {
-        _character.Class = new Paladin(_character);
-        for (var i = 0; i < 100; i++)
+        [TestMethod]
+        public void PaladinsGetEightHpPerLevel()
         {
-            //var attack = new Attack(18, _character, _enemy);
-            _character.Attack(18, _enemy);
+            _character.Class = new Paladin(_character);
+            for (var i = 0; i < 100; i++)
+            {
+                //var attack = new Attack(18, _character, _enemy);
+                _character.Attack(18, _enemy);
+            }
+            Assert.AreEqual(16, _character.HitPoints);
         }
-        Assert.AreEqual(16, _character.HitPoints);
-    }
 
-    [TestMethod]
-    public void PaladinsGetTwoExtraAttackWhenAttackingEvilCharacters()
+        [TestMethod]
+        public void PaladinsGetTwoExtraAttackWhenAttackingEvilCharacters()
+        {
+            var evilEnemy = new BaseCharacter(alignment: Character.Alignments.Evil);
+            _character.Class = new Paladin(_character);
+            //var attack = new Attack(9, _character, evilEnemy);
+            var hit = _character.Attack(9, evilEnemy);
+            Assert.IsTrue(hit);
+        }
+    }
+    
+    [TestClass]
+    public class OrcTests
     {
-        var evilEnemy = new BaseCharacter(alignment: Character.Alignments.Evil);
-        _character.Class = new Paladin(_character);
-        //var attack = new Attack(9, _character, evilEnemy);
-        var hit = _character.Attack(9, evilEnemy);
-        Assert.IsTrue(hit);
+        private Character _character;
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            _character = new BaseCharacter();
+            _character.Race = new Orc(_character);
+        }
+
+        [TestMethod]
+        public void OrcsGiveBonusTwoStrength()
+        {
+            Assert.AreEqual(12, _character.Abilities.Strength.Score);
+        }
+
+        [TestMethod]
+        public void OrcsGetNegativeOneToInt()
+        {
+            Assert.AreEqual(9, _character.Abilities.Intelligence.Score);
+        }
+
+        [TestMethod]
+        public void OrcsGetNegativeOneCha()
+        {
+            Assert.AreEqual(9, _character.Abilities.Charisma.Score);
+        }
+
+        [TestMethod]
+        public void OrcsGetNegativeOneWis()
+        {
+            Assert.AreEqual(9, _character.Abilities.Wisdom.Score);
+        }
+
+        [TestMethod]
+        public void OrcsGetTwoBonusAc()
+        {
+            Assert.AreEqual(12, _character.ArmorClass);
+        }
     }
 
+    [TestClass]
+    public class DwarfTests
+    {
+        private Character _character;
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            _character = new BaseCharacter();
+            _character.Race = new Dwarf(_character);
+        }
+
+        [TestMethod]
+        public void DwarvesGetOneBonusCon()
+        {
+            Assert.AreEqual(11, _character.Abilities.Constitution.Score);
+        }
+
+        [TestMethod]
+        public void DwarvesLoseOneCha()
+        {
+            Assert.AreEqual(9, _character.Abilities.Charisma.Score);
+        }
+
+        [TestMethod]
+        public void DwarvesGetDoubleConBonusToHp()
+        {
+            var abilities = new AbilityScores(constitution: 14);
+            var character = new BaseCharacter(abilities);
+            character.Race = new Dwarf(character);
+            Assert.AreEqual(9, character.HitPoints);
+        }
+
+        [TestMethod]
+        public void DwarvesGetTwoAttackWhenTargetIsOrc()
+        {
+            var enemy = new BaseCharacter();
+            enemy.Race = new Orc(enemy);
+            const int justEnoughToMissByTwoTakingOrcAcBonusIntoAccount = 11;
+            var attack = new Attack(justEnoughToMissByTwoTakingOrcAcBonusIntoAccount, _character, enemy);
+            Assert.IsTrue(attack.IsHit);
+        }
+    }
 }
