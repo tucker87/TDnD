@@ -1,45 +1,43 @@
-﻿using System.Diagnostics;
-using System.Dynamic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Prototyping;
 
 namespace Prototyping
 {
-    public abstract class Character
+    public interface ICharacter
     {
-        public abstract int HitPoints { get; }
-        public abstract int ArmorClass { get; }
-        public virtual int FlatFootedArmorClass { get; set; }
-        public virtual int Level { get; set; }
-        public string Name { get; set; }
-        public Class Class { get; set; }
-        public Race Race { get; set; }
+        int HitPoints { get; }
+        int ArmorClass { get; }
+        int FlatFootedArmorClass { get; set; }
+        int Level { get; set; }
+        string Name { get; set; }
+        Class Class { get; set; }
+        Race Race { get; set; }
+        bool IsDead { get; set; }
+        int BaseDamage { get; set; }
+        int AttackBonusMod { get; set; }
+        int CritMultiplier { get; set; }
+        bool AttacksFlatFootedAc { get; set; }
+        int AttackPerLevelDivisor { get; set; }
+        int BaseHitPoints { get; set; }
 
-        public bool IsDead;
-        public int BaseDamage;
-        public int AttackBonusMod;
-        public int CritMultiplier;
-        public bool AttacksFlatFootedAc;
-        public int AttackPerLevelDivisor;
-        public int BaseHitPoints;
-        
-        public Abilities Abilities = new Abilities(new AbilityScores());
-        public int ArmorClassBonusFromClass;
-        public enum Alignments { Good, Neutral, Evil }
-        public Alignments Alignment;
-        public int CurrentDamage;
-        public int Experience;
-        public int ArmorClassBonusFromRace;
+        Abilities Abilities = new Abilities(new AbilityScores());
+        int ArmorClassBonusFromClass { get; set; }
 
-        public abstract void GainExperience(int xp);
-        public abstract void TakeDamage(int damage);
-        public abstract bool Attack(int roll, Character target);
-    } 
+        Alignments Alignment { get; set; }
+        int CurrentDamage { get; set; }
+        int Experience { get; set; }
+        int ArmorClassBonusFromRace { get; set; }
 
-    public class BaseCharacter : Character
+        void GainExperience(int xp);
+        void TakeDamage(int damage);
+        bool Attack(int roll, ICharacter target);
+    }
+
+    public enum Alignments { Good, Neutral, Evil }
+
+    public class BaseCharacter : ICharacter
     {
-        public BaseCharacter(string name = "John Doe", Alignments alignment = Alignments.Neutral)
+        public BaseCharacter(string name = "John Doe", ICharacter.Alignments alignment = ICharacter.Alignments.Neutral)
         {
             Abilities.Strength.BaseScore = BaseAbilityScore;
             Abilities.Dexterity.BaseScore = BaseAbilityScore;
@@ -80,16 +78,36 @@ namespace Prototyping
         private const int BaseAbilityScore = 10;
         private const int BaseArmorClass = 10;
         //private readonly Attack _attack = new Attack();
-        private int BonusHpFromCon{get
+        private int BonusHpFromCon
         {
-            return Race.RaceName == "Dwarf" ? (Abilities.Constitution.Modifier*2) : Abilities.Constitution.Modifier;
-        }}
-        public override int HitPoints { get { return (BaseHitPoints + BonusHpFromCon) * Level; } }
-        public override int ArmorClass { get { return BaseArmorClass + Abilities.Dexterity.Modifier + ArmorClassBonusFromRace + ArmorClassBonusFromClass; } }
-        public override int FlatFootedArmorClass { get { return BaseArmorClass; } }
-        public override int Level { get { return (Experience / 1000) + 1; } }
+            get
+            {
+                return Race.RaceName == "Dwarf" ? (Abilities.Constitution.Modifier * 2) : Abilities.Constitution.Modifier;
+            }
+        }
+        public int HitPoints { get { return (BaseHitPoints + BonusHpFromCon) * Level; } }
+        public  int ArmorClass { get { return BaseArmorClass + Abilities.Dexterity.Modifier + ArmorClassBonusFromRace + ArmorClassBonusFromClass; } }
+        int ICharacter.FlatFootedArmorClass { get; set; }
+        int ICharacter.Level { get; set; }
+        public string Name { get; set; }
+        public Class Class { get; set; }
+        public Race Race { get; set; }
+        public bool IsDead { get; set; }
+        public int BaseDamage { get; set; }
+        public int AttackBonusMod { get; set; }
+        public int CritMultiplier { get; set; }
+        public bool AttacksFlatFootedAc { get; set; }
+        public int AttackPerLevelDivisor { get; set; }
+        public int BaseHitPoints { get; set; }
+        public int ArmorClassBonusFromClass { get; set; }
+        public Alignments Alignment { get; set; }
+        public int CurrentDamage { get; set; }
+        public int Experience { get; set; }
+        public int ArmorClassBonusFromRace { get; set; }
+        public  int FlatFootedArmorClass { get { return BaseArmorClass; } }
+        public  int Level { get { return (Experience / 1000) + 1; } }
 
-        public override bool Attack(int roll, Character target)
+        public  bool Attack(int roll, ICharacter target)
         {
             var attack = new Attack(roll, this, target);
             return attack.IsHit;
@@ -104,14 +122,14 @@ namespace Prototyping
             //return true;
         }
 
-        public override void TakeDamage(int damage)
+        public  void TakeDamage(int damage)
         {
             CurrentDamage += damage;
             if (HitPoints - CurrentDamage <= 0)
                 IsDead = true;
         }
 
-        public override void GainExperience(int xp)
+        public  void GainExperience(int xp)
         {
             Experience += xp;
         }
@@ -186,20 +204,20 @@ namespace Prototyping
     public sealed class WisdomAbility : Ability { }
     public sealed class IntelligenceAbility : Ability { }
     public sealed class CharismaAbility : Ability { }
-    
-    public abstract class Class : Character
+
+    public abstract class Class : ICharacter
     {
-        private readonly Character _character;
-        protected Class(Character character)
+        private readonly ICharacter _character;
+        protected Class(ICharacter character)
         {
             _character = character;
         }
 
-        
-        public override int ArmorClass{ get { return _character.ArmorClass; } }
+
+        public override int ArmorClass { get { return _character.ArmorClass; } }
         public override int HitPoints { get { return _character.HitPoints; } }
 
-        public override bool Attack(int roll, Character target)
+        public override bool Attack(int roll, ICharacter target)
         {
             return _character.Attack(roll, target);
         }
@@ -218,7 +236,8 @@ namespace Prototyping
 
     public class Fighter : Class
     {
-        public Fighter(Character character) : base(character)
+        public Fighter(ICharacter character)
+            : base(character)
         {
             character.BaseHitPoints = 10;
             character.AttackPerLevelDivisor = 1;
@@ -227,7 +246,8 @@ namespace Prototyping
 
     public class Rogue : Class
     {
-        public Rogue(Character character) : base(character)
+        public Rogue(ICharacter character)
+            : base(character)
         {
             character.CritMultiplier = 3;
             character.AttacksFlatFootedAc = true;
@@ -237,40 +257,42 @@ namespace Prototyping
 
     public class Monk : Class
     {
-        public Monk(Character character) : base(character)
+        public Monk(ICharacter character)
+            : base(character)
         {
             character.BaseHitPoints = 6;
             character.BaseDamage = 3;
             if (character.Abilities.Wisdom.Modifier > 0)
                 character.ArmorClassBonusFromClass = character.Abilities.Wisdom.Modifier;
         }
-        
+
     }
 
     public class Paladin : Class
     {
-        public Paladin(Character character) : base(character)
+        public Paladin(ICharacter character)
+            : base(character)
         {
             ClassName = "Paladin";
             character.BaseHitPoints = 8;
         }
     }
 
-    public abstract class Race : Character
+    public abstract class Race : ICharacter
     {
-        private readonly Character _character;
+        private readonly ICharacter _character;
 
-        protected Race(Character character)
+        protected Race(ICharacter character)
         {
             _character = character;
         }
 
         public string RaceName { get; set; }
 
-        public override int ArmorClass{ get { return _character.ArmorClass; } }
+        public override int ArmorClass { get { return _character.ArmorClass; } }
         public override int HitPoints { get { return _character.HitPoints; } }
 
-        public override bool Attack(int roll, Character target)
+        public override bool Attack(int roll, ICharacter target)
         {
             return _character.Attack(roll, target);
         }
@@ -288,22 +310,24 @@ namespace Prototyping
 
     public class Human : Race
     {
-        public Human(Character character) : base(character)
+        public Human(ICharacter character)
+            : base(character)
         {
             RaceName = "Human";
         }
-        
+
     }
 
     public class Orc : Race
     {
-        public Orc(Character character) : base(character)
+        public Orc(ICharacter character)
+            : base(character)
         {
             character.Abilities.Strength.RaceBonus = 2;
             character.Abilities.Intelligence.RaceBonus = -1;
             character.Abilities.Wisdom.RaceBonus = -1;
             character.Abilities.Charisma.RaceBonus = -1;
-            
+
             character.ArmorClassBonusFromRace = 2;
 
             RaceName = "Orc";
@@ -312,7 +336,8 @@ namespace Prototyping
 
     public class Dwarf : Race
     {
-        public Dwarf(Character character) : base(character)
+        public Dwarf(ICharacter character)
+            : base(character)
         {
             character.Abilities.Constitution.RaceBonus = 1;
             character.Abilities.Charisma.RaceBonus = -1;
@@ -327,8 +352,8 @@ public class CharacterTesting
     [TestClass]
     public class BaseCharacterTests
     {
-        private Character _character;
-        private Character _enemy;
+        private ICharacter _character;
+        private ICharacter _enemy;
 
         [TestInitialize]
         public void Initialize()
@@ -346,14 +371,14 @@ public class CharacterTesting
         [TestMethod]
         public void CharactersAlignmentIsNeutralByDefault()
         {
-            Assert.AreEqual(Character.Alignments.Neutral, _character.Alignment);
+            Assert.AreEqual(ICharacter.Alignments.Neutral, _character.Alignment);
         }
 
         [TestMethod]
         public void CharactersAlignmentCanBeSet()
         {
-            var goodyTwoShoes = new BaseCharacter("Cleric", Character.Alignments.Good);
-            Assert.AreEqual(Character.Alignments.Good, goodyTwoShoes.Alignment);
+            var goodyTwoShoes = new BaseCharacter("Cleric", ICharacter.Alignments.Good);
+            Assert.AreEqual(ICharacter.Alignments.Good, goodyTwoShoes.Alignment);
         }
 
         [TestMethod]
@@ -434,8 +459,8 @@ public class CharacterTesting
     [TestClass]
     public class FighterTests
     {
-        private Character _character;
-        private Character _enemy;
+        private ICharacter _character;
+        private ICharacter _enemy;
 
         [TestInitialize]
         public void Initialize()
@@ -459,7 +484,7 @@ public class CharacterTesting
             var hit = _character.Attack(10, _enemy);
             Assert.IsTrue(hit);
         }
-        
+
         [TestMethod]
         public void FightersGetTenHpPerLevel()
         {
@@ -471,8 +496,8 @@ public class CharacterTesting
     [TestClass]
     public class MonkTests
     {
-        private Character _monk;
-        private Character _enemy;
+        private ICharacter _monk;
+        private ICharacter _enemy;
 
         [TestInitialize]
         public void Initialize()
@@ -527,8 +552,8 @@ public class CharacterTesting
     [TestClass]
     public class PaladinTests
     {
-        private Character _character;
-        private Character _enemy;
+        private ICharacter _character;
+        private ICharacter _enemy;
 
         [TestInitialize]
         public void Initialize()
@@ -554,18 +579,18 @@ public class CharacterTesting
         [TestMethod]
         public void PaladinsGetTwoExtraAttackWhenAttackingEvilCharacters()
         {
-            var evilEnemy = new BaseCharacter(alignment: Character.Alignments.Evil);
+            var evilEnemy = new BaseCharacter(alignment: ICharacter.Alignments.Evil);
             _character.Class = new Paladin(_character);
             //var attack = new Attack(9, _character, evilEnemy);
             var hit = _character.Attack(9, evilEnemy);
             Assert.IsTrue(hit);
         }
     }
-    
+
     [TestClass]
     public class OrcTests
     {
-        private Character _character;
+        private ICharacter _character;
 
         [TestInitialize]
         public void Initialize()
@@ -608,7 +633,7 @@ public class CharacterTesting
     [TestClass]
     public class DwarfTests
     {
-        private Character _character;
+        private ICharacter _character;
 
         [TestInitialize]
         public void Initialize()

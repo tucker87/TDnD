@@ -1,12 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Prototyping;
-using Character = Prototyping.Character;
 
 namespace Prototyping
 {
     public class Attack
     {
-        public Attack(int roll, Character attacker, Character target)
+        public Attack(int roll, ICharacter attacker, ICharacter target)
         {
             var attackTotal = CalculateAttack(roll, attacker, target);
 
@@ -19,7 +18,7 @@ namespace Prototyping
         }
 
 
-        public int CalculateAttack(int roll, Character attacker, Character target)
+        public int CalculateAttack(int roll, ICharacter attacker, ICharacter target)
         {
             var attackerAbilityMod = attacker.AttackBonusMod;
             //Special Cases for Classes (Refactor when possible)
@@ -29,17 +28,17 @@ namespace Prototyping
             return roll + attackerAbilityMod + classBonus + raceBonus + (attacker.Level / attacker.AttackPerLevelDivisor);
         }
 
-        private static int CalculateClassBonus(Character attacker, Character target)
+        private static int CalculateClassBonus(ICharacter attacker, ICharacter target)
         {
             var classBonus = 0;
             if (attacker.Class == null) return classBonus;
             if (attacker.Class.ClassName != "Paladin") return classBonus;
-            if (target.Alignment == Character.Alignments.Evil)
+            if (target.Alignment == ICharacter.Alignments.Evil)
                 classBonus = 2;
             
             return classBonus;
         }
-        private static int CalculateRaceBonus(Character attacker, Character target)
+        private static int CalculateRaceBonus(ICharacter attacker, ICharacter target)
         {
             var raceBonus = 0;
             if (attacker.Race.RaceName != "Dwarf") return raceBonus;
@@ -55,7 +54,7 @@ namespace Prototyping
             return attackTotal > targetAc;
         }
 
-        public int CalculateDamage(int roll, Character attacker)
+        public int CalculateDamage(int roll, ICharacter attacker)
         {
             var attackerStrengthMod = attacker.Abilities.Strength.Modifier;
             var damage = attacker.BaseDamage + attackerStrengthMod;
@@ -74,10 +73,10 @@ namespace Prototyping
 public class CombatTests
 {
     private Attack _attack;
-    private Character _attacker;
-    private Character _strongMan;
-    private Character _target;
-    private Character _weakMan;
+    private ICharacter _attacker;
+    private ICharacter _strongMan;
+    private ICharacter _target;
+    private ICharacter _weakMan;
     private const int LowRoll = 8;
     private const int EqualRoll = 10;
     private const int HighRoll = 18;

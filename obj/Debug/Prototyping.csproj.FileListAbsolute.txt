@@ -3,3 +3,6 @@ D:\Home\Documents\GitHub\Prototyping\bin\Debug\Prototyping.dll
 D:\Home\Documents\GitHub\Prototyping\bin\Debug\Prototyping.pdb
 D:\Home\Documents\GitHub\Prototyping\obj\Debug\Prototyping.dll
 D:\Home\Documents\GitHub\Prototyping\obj\Debug\Prototyping.pdb
+C:\Projects\Prototyping\obj\Debug\Prototyping.csprojResolveAssemblyReference.cache
+C:\Projects\Prototyping\obj\Debug\Prototyping.dll
+C:\Projects\Prototyping\obj\Debug\Prototyping.pdb
