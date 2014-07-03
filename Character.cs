@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Prototyping;
 
 namespace Prototyping
@@ -7,11 +9,11 @@ namespace Prototyping
     {
         int HitPoints { get; }
         int ArmorClass { get; }
-        int FlatFootedArmorClass { get; set; }
-        int Level { get; set; }
+        int FlatFootedArmorClass { get; }
+        int Level { get; }
         string Name { get; set; }
-        Class Class { get; set; }
-        Race Race { get; set; }
+        List<Class> Classes { get; }
+        List<Race> Races { get; }
         bool IsDead { get; set; }
         int BaseDamage { get; set; }
         int AttackBonusMod { get; set; }
@@ -20,7 +22,7 @@ namespace Prototyping
         int AttackPerLevelDivisor { get; set; }
         int BaseHitPoints { get; set; }
 
-        Abilities Abilities = new Abilities(new AbilityScores());
+        Abilities Abilities { get; set; }
         int ArmorClassBonusFromClass { get; set; }
 
         Alignments Alignment { get; set; }
@@ -37,26 +39,28 @@ namespace Prototyping
 
     public class BaseCharacter : ICharacter
     {
-        public BaseCharacter(string name = "John Doe", ICharacter.Alignments alignment = ICharacter.Alignments.Neutral)
+        public BaseCharacter(string name = "John Doe", Alignments alignment = Alignments.Neutral)
         {
-            Abilities.Strength.BaseScore = BaseAbilityScore;
-            Abilities.Dexterity.BaseScore = BaseAbilityScore;
-            Abilities.Constitution.BaseScore = BaseAbilityScore;
-            Abilities.Intelligence.BaseScore = BaseAbilityScore;
-            Abilities.Wisdom.BaseScore = BaseAbilityScore;
-            Abilities.Charisma.BaseScore = BaseAbilityScore;
+            Abilities = new Abilities(new AbilityScores());
+            Abilities.Strength.Score = BaseAbilityScore;
+            Abilities.Dexterity.Score = BaseAbilityScore;
+            Abilities.Constitution.Score = BaseAbilityScore;
+            Abilities.Intelligence.Score = BaseAbilityScore;
+            Abilities.Wisdom.Score = BaseAbilityScore;
+            Abilities.Charisma.Score = BaseAbilityScore;
 
             Init(name, alignment);
         }
 
         public BaseCharacter(AbilityScores baseAbilityScores, string name = "John Doe", Alignments alignment = Alignments.Neutral)
         {
-            Abilities.Strength.BaseScore = baseAbilityScores.Strength;
-            Abilities.Dexterity.BaseScore = baseAbilityScores.Dexterity;
-            Abilities.Constitution.BaseScore = baseAbilityScores.Constitution;
-            Abilities.Intelligence.BaseScore = baseAbilityScores.Intelligence;
-            Abilities.Wisdom.BaseScore = baseAbilityScores.Wisdom;
-            Abilities.Charisma.BaseScore = baseAbilityScores.Charisma;
+            Abilities = new Abilities(new AbilityScores());
+            Abilities.Strength.Score = baseAbilityScores.Strength;
+            Abilities.Dexterity.Score = baseAbilityScores.Dexterity;
+            Abilities.Constitution.Score = baseAbilityScores.Constitution;
+            Abilities.Intelligence.Score = baseAbilityScores.Intelligence;
+            Abilities.Wisdom.Score = baseAbilityScores.Wisdom;
+            Abilities.Charisma.Score = baseAbilityScores.Charisma;
 
             Init(name, alignment);
         }
@@ -72,7 +76,10 @@ namespace Prototyping
             CritMultiplier = 2;
             AttackBonusMod = Abilities.Strength.Modifier;
             BaseDamage = 1;
-            Race = new Human(this);
+            Races = new List<Race>();
+            Races.Add(new Human(this));
+            Classes = new List<Class>();
+
         }
 
         private const int BaseAbilityScore = 10;
@@ -82,16 +89,18 @@ namespace Prototyping
         {
             get
             {
-                return Race.RaceName == "Dwarf" ? (Abilities.Constitution.Modifier * 2) : Abilities.Constitution.Modifier;
+                var bonus = Abilities.Constitution.Modifier;
+                if (Races.Single().RaceName == "Dwarf")
+                    bonus = bonus * 2;
+                return bonus;
             }
         }
+
         public int HitPoints { get { return (BaseHitPoints + BonusHpFromCon) * Level; } }
-        public  int ArmorClass { get { return BaseArmorClass + Abilities.Dexterity.Modifier + ArmorClassBonusFromRace + ArmorClassBonusFromClass; } }
-        int ICharacter.FlatFootedArmorClass { get; set; }
-        int ICharacter.Level { get; set; }
+        public int ArmorClass { get { return BaseArmorClass + Abilities.Dexterity.Modifier + ArmorClassBonusFromRace + ArmorClassBonusFromClass; } }
         public string Name { get; set; }
-        public Class Class { get; set; }
-        public Race Race { get; set; }
+        public List<Class> Classes { get; set; }
+        public List<Race> Races { get; set; }
         public bool IsDead { get; set; }
         public int BaseDamage { get; set; }
         public int AttackBonusMod { get; set; }
@@ -99,15 +108,16 @@ namespace Prototyping
         public bool AttacksFlatFootedAc { get; set; }
         public int AttackPerLevelDivisor { get; set; }
         public int BaseHitPoints { get; set; }
+        public Abilities Abilities { get; set; }
         public int ArmorClassBonusFromClass { get; set; }
         public Alignments Alignment { get; set; }
         public int CurrentDamage { get; set; }
         public int Experience { get; set; }
         public int ArmorClassBonusFromRace { get; set; }
-        public  int FlatFootedArmorClass { get { return BaseArmorClass; } }
-        public  int Level { get { return (Experience / 1000) + 1; } }
+        public int FlatFootedArmorClass { get { return BaseArmorClass; } }
+        public int Level { get { return (Experience / 1000) + 1; } }
 
-        public  bool Attack(int roll, ICharacter target)
+        public bool Attack(int roll, ICharacter target)
         {
             var attack = new Attack(roll, this, target);
             return attack.IsHit;
@@ -122,14 +132,14 @@ namespace Prototyping
             //return true;
         }
 
-        public  void TakeDamage(int damage)
+        public void TakeDamage(int damage)
         {
             CurrentDamage += damage;
             if (HitPoints - CurrentDamage <= 0)
                 IsDead = true;
         }
 
-        public  void GainExperience(int xp)
+        public void GainExperience(int xp)
         {
             Experience += xp;
         }
@@ -161,28 +171,26 @@ namespace Prototyping
     {
         public Abilities(AbilityScores scores)
         {
-            Strength.BaseScore = scores.Strength;
-            Dexterity.BaseScore = scores.Dexterity;
-            Constitution.BaseScore = scores.Constitution;
-            Wisdom.BaseScore = scores.Wisdom;
-            Intelligence.BaseScore = scores.Intelligence;
-            Charisma.BaseScore = scores.Charisma;
+            Strength.Score = scores.Strength;
+            Dexterity.Score = scores.Dexterity;
+            Constitution.Score = scores.Constitution;
+            Wisdom.Score = scores.Wisdom;
+            Intelligence.Score = scores.Intelligence;
+            Charisma.Score = scores.Charisma;
         }
-        public StrengthAbility Strength = new StrengthAbility();
-        public DexterityAbility Dexterity = new DexterityAbility();
-        public ConstitutionAbility Constitution = new ConstitutionAbility();
-        public WisdomAbility Wisdom = new WisdomAbility();
-        public IntelligenceAbility Intelligence = new IntelligenceAbility();
-        public CharismaAbility Charisma = new CharismaAbility();
+        public Ability Strength = new Ability();
+        public Ability Dexterity = new Ability();
+        public Ability Constitution = new Ability();
+        public Ability Wisdom = new Ability();
+        public Ability Intelligence = new Ability();
+        public Ability Charisma = new Ability();
     }
 
-    public abstract class Ability
+    public class Ability
     {
-        public int Score { get { return BaseScore + RaceBonus + ClassBonus; } }
-        public int RaceBonus { get; set; }
         public int Modifier { get { return (Score / 2) - 5; } }
         private int _baseScore;
-        public int BaseScore
+        public int Score
         {
             get { return _baseScore; }
             set
@@ -194,16 +202,7 @@ namespace Prototyping
                 _baseScore = value;
             }
         }
-        public int ClassBonus { get; set; }
     }
-
-    //This could be undone, I misread something....
-    public sealed class StrengthAbility : Ability { }
-    public sealed class DexterityAbility : Ability { }
-    public sealed class ConstitutionAbility : Ability { }
-    public sealed class WisdomAbility : Ability { }
-    public sealed class IntelligenceAbility : Ability { }
-    public sealed class CharismaAbility : Ability { }
 
     public abstract class Class : ICharacter
     {
@@ -214,19 +213,41 @@ namespace Prototyping
         }
 
 
-        public override int ArmorClass { get { return _character.ArmorClass; } }
-        public override int HitPoints { get { return _character.HitPoints; } }
+        public int ArmorClass { get { return _character.ArmorClass; } }
+        public int FlatFootedArmorClass { get; set; }
+        public int Level { get; set; }
+        public string Name { get; set; }
+        public List<Class> Classes { get; set; }
+        public List<Race> Races { get; set; }
+        public bool IsDead { get; set; }
+        public int BaseDamage { get; set; }
+        public int AttackBonusMod { get; set; }
+        public int CritMultiplier { get; set; }
+        public bool AttacksFlatFootedAc { get; set; }
+        public int AttackPerLevelDivisor
+        {
+            get { return _character.AttackPerLevelDivisor; }
+            set { _character.AttackPerLevelDivisor = value; }
+        }
+        public int BaseHitPoints { get; set; }
+        public Abilities Abilities { get; set; }
+        public int ArmorClassBonusFromClass { get; set; }
+        public Alignments Alignment { get; set; }
+        public int CurrentDamage { get; set; }
+        public int Experience { get; set; }
+        public int ArmorClassBonusFromRace { get; set; }
+        public int HitPoints { get { return _character.HitPoints; } }
 
-        public override bool Attack(int roll, ICharacter target)
+        public bool Attack(int roll, ICharacter target)
         {
             return _character.Attack(roll, target);
         }
-        public override void GainExperience(int xp)
+        public void GainExperience(int xp)
         {
             _character.GainExperience(xp);
         }
 
-        public override void TakeDamage(int damage)
+        public void TakeDamage(int damage)
         {
             _character.TakeDamage(damage);
         }
@@ -289,19 +310,47 @@ namespace Prototyping
 
         public string RaceName { get; set; }
 
-        public override int ArmorClass { get { return _character.ArmorClass; } }
-        public override int HitPoints { get { return _character.HitPoints; } }
+        public virtual int ArmorClass { get { return _character.ArmorClass; } }
+        public int FlatFootedArmorClass { get; set; }
+        public int Level { get; set; }
+        public string Name { get; set; }
+        public List<Class> Classes { get { return _character.Classes; } }
+        public List<Race> Races { get { return _character.Races; } }
+        public bool IsDead { get; set; }
+        public int BaseDamage { get; set; }
+        public int AttackBonusMod { get; set; }
+        public int CritMultiplier { get; set; }
+        public bool AttacksFlatFootedAc { get; set; }
 
-        public override bool Attack(int roll, ICharacter target)
+        public int AttackPerLevelDivisor
+        {
+            get { return _character.AttackPerLevelDivisor; }
+            set { _character.AttackPerLevelDivisor = value; }
+        }
+        public int BaseHitPoints { get; set; }
+        public Abilities Abilities
+        {
+            get { return _character.Abilities; }
+            set { _character.Abilities = value; }
+        }
+
+        public int ArmorClassBonusFromClass { get; set; }
+        public Alignments Alignment { get; set; }
+        public int CurrentDamage { get; set; }
+        public int Experience { get; set; }
+        public int ArmorClassBonusFromRace { get; set; }
+        public int HitPoints { get { return _character.HitPoints; } }
+
+        public bool Attack(int roll, ICharacter target)
         {
             return _character.Attack(roll, target);
         }
-        public override void GainExperience(int xp)
+        public void GainExperience(int xp)
         {
             _character.GainExperience(xp);
         }
 
-        public override void TakeDamage(int damage)
+        public void TakeDamage(int damage)
         {
             _character.TakeDamage(damage);
         }
@@ -320,17 +369,22 @@ namespace Prototyping
 
     public class Orc : Race
     {
+        private readonly ICharacter _character;
         public Orc(ICharacter character)
             : base(character)
         {
-            character.Abilities.Strength.RaceBonus = 2;
-            character.Abilities.Intelligence.RaceBonus = -1;
-            character.Abilities.Wisdom.RaceBonus = -1;
-            character.Abilities.Charisma.RaceBonus = -1;
-
-            character.ArmorClassBonusFromRace = 2;
-
+            _character = character;
+            character.Abilities.Strength.Score += 2;
+            character.Abilities.Intelligence.Score += -1;
+            character.Abilities.Wisdom.Score += -1;
+            character.Abilities.Charisma.Score += -1;
             RaceName = "Orc";
+            character.Races.Clear();
+            character.Races.Add(this);
+        }
+        public override int ArmorClass
+        {
+            get { return _character.ArmorClass + 2; }
         }
     }
 
@@ -339,9 +393,11 @@ namespace Prototyping
         public Dwarf(ICharacter character)
             : base(character)
         {
-            character.Abilities.Constitution.RaceBonus = 1;
-            character.Abilities.Charisma.RaceBonus = -1;
+            character.Abilities.Constitution.Score += 1;
+            character.Abilities.Charisma.Score += -1;
             RaceName = "Dwarf";
+            character.Races.Clear();
+            character.Races.Add(this);
         }
     }
 }
@@ -371,14 +427,14 @@ public class CharacterTesting
         [TestMethod]
         public void CharactersAlignmentIsNeutralByDefault()
         {
-            Assert.AreEqual(ICharacter.Alignments.Neutral, _character.Alignment);
+            Assert.AreEqual(Alignments.Neutral, _character.Alignment);
         }
 
         [TestMethod]
         public void CharactersAlignmentCanBeSet()
         {
-            var goodyTwoShoes = new BaseCharacter("Cleric", ICharacter.Alignments.Good);
-            Assert.AreEqual(ICharacter.Alignments.Good, goodyTwoShoes.Alignment);
+            var goodyTwoShoes = new BaseCharacter("Cleric", Alignments.Good);
+            Assert.AreEqual(Alignments.Good, goodyTwoShoes.Alignment);
         }
 
         [TestMethod]
@@ -430,7 +486,6 @@ public class CharacterTesting
         {
             for (var i = 0; i < 100; i++)
             {
-                //var attack = new Attack(18, _character, _enemy);
                 _character.Attack(18, _enemy);
             }
             Assert.AreEqual(2, _character.Level);
@@ -443,7 +498,6 @@ public class CharacterTesting
             var toughCharacter = new BaseCharacter(abilities);
             for (var i = 0; i < 100; i++)
             {
-                //var attack = new Attack(18, toughCharacter, _enemy);
                 toughCharacter.Attack(18, _enemy);
             }
             Assert.AreEqual(12, toughCharacter.HitPoints);
@@ -452,7 +506,7 @@ public class CharacterTesting
         [TestMethod]
         public void AllCharactersRaceDefaultsToHuman()
         {
-            Assert.AreEqual("Human", _character.Race.RaceName);
+            //Assert.AreEqual("Human", _character.Races.RaceName);
         }
     }
 
@@ -466,7 +520,7 @@ public class CharacterTesting
         public void Initialize()
         {
             _character = new BaseCharacter();
-            _character.Class = new Fighter(_character);
+            _character = new Fighter(_character);
 
             _enemy = new BaseCharacter();
         }
@@ -503,7 +557,7 @@ public class CharacterTesting
         public void Initialize()
         {
             _monk = new BaseCharacter();
-            _monk.Class = new Monk(_monk);
+            _monk = new Monk(_monk);
 
             _enemy = new BaseCharacter();
         }
@@ -511,10 +565,8 @@ public class CharacterTesting
         [TestMethod]
         public void MonksGetSixHpPerLevel()
         {
-            _monk.Class = new Monk(_monk);
             for (var i = 0; i < 100; i++)
             {
-                //var attack = new Attack(18, _character, _enemy);
                 _monk.Attack(18, _enemy);
             }
             Assert.AreEqual(12, _monk.HitPoints);
@@ -523,7 +575,6 @@ public class CharacterTesting
         [TestMethod]
         public void MonksDoThreeDamageOnAttack()
         {
-            _monk.Class = new Monk(_monk);
             //var attack = new Attack(18, _character, _enemy);
             _monk.Attack(18, _enemy);
             Assert.AreEqual(3, _enemy.CurrentDamage);
@@ -534,7 +585,7 @@ public class CharacterTesting
         {
             var abilites = new AbilityScores(wisdom: 12);
             var wiseCharacter = new BaseCharacter(abilites);
-            _monk.Class = new Monk(wiseCharacter);
+            _monk = new Monk(wiseCharacter);
             Assert.AreEqual(11, wiseCharacter.ArmorClass);
         }
 
@@ -543,7 +594,7 @@ public class CharacterTesting
         {
             var abilites = new AbilityScores(wisdom: 8);
             var wiseCharacter = new BaseCharacter(abilites);
-            _monk.Class = new Monk(wiseCharacter);
+            _monk = new Monk(wiseCharacter);
             Assert.AreEqual(10, wiseCharacter.ArmorClass);
         }
     }
@@ -559,7 +610,7 @@ public class CharacterTesting
         public void Initialize()
         {
             _character = new BaseCharacter();
-            _character.Class = new Paladin(_character);
+            _character = new Paladin(_character);
 
             _enemy = new BaseCharacter();
         }
@@ -567,10 +618,9 @@ public class CharacterTesting
         [TestMethod]
         public void PaladinsGetEightHpPerLevel()
         {
-            _character.Class = new Paladin(_character);
+            _character = new Paladin(_character);
             for (var i = 0; i < 100; i++)
             {
-                //var attack = new Attack(18, _character, _enemy);
                 _character.Attack(18, _enemy);
             }
             Assert.AreEqual(16, _character.HitPoints);
@@ -579,9 +629,8 @@ public class CharacterTesting
         [TestMethod]
         public void PaladinsGetTwoExtraAttackWhenAttackingEvilCharacters()
         {
-            var evilEnemy = new BaseCharacter(alignment: ICharacter.Alignments.Evil);
-            _character.Class = new Paladin(_character);
-            //var attack = new Attack(9, _character, evilEnemy);
+            var evilEnemy = new BaseCharacter(alignment: Alignments.Evil);
+            _character = new Paladin(_character);
             var hit = _character.Attack(9, evilEnemy);
             Assert.IsTrue(hit);
         }
@@ -596,7 +645,7 @@ public class CharacterTesting
         public void Initialize()
         {
             _character = new BaseCharacter();
-            _character.Race = new Orc(_character);
+            _character = new Orc(_character);
         }
 
         [TestMethod]
@@ -639,7 +688,7 @@ public class CharacterTesting
         public void Initialize()
         {
             _character = new BaseCharacter();
-            _character.Race = new Dwarf(_character);
+            _character = new Dwarf(_character);
         }
 
         [TestMethod]
@@ -658,16 +707,16 @@ public class CharacterTesting
         public void DwarvesGetDoubleConBonusToHp()
         {
             var abilities = new AbilityScores(constitution: 14);
-            var character = new BaseCharacter(abilities);
-            character.Race = new Dwarf(character);
+            ICharacter character = new BaseCharacter(abilities);
+            character = new Dwarf(character);
             Assert.AreEqual(9, character.HitPoints);
         }
 
         [TestMethod]
         public void DwarvesGetTwoAttackWhenTargetIsOrc()
         {
-            var enemy = new BaseCharacter();
-            enemy.Race = new Orc(enemy);
+            ICharacter enemy = new BaseCharacter();
+            enemy = new Orc(enemy);
             const int justEnoughToMissByTwoTakingOrcAcBonusIntoAccount = 11;
             var attack = new Attack(justEnoughToMissByTwoTakingOrcAcBonusIntoAccount, _character, enemy);
             Assert.IsTrue(attack.IsHit);

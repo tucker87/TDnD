@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Prototyping;
 
 namespace Prototyping
@@ -31,9 +32,10 @@ namespace Prototyping
         private static int CalculateClassBonus(ICharacter attacker, ICharacter target)
         {
             var classBonus = 0;
-            if (attacker.Class == null) return classBonus;
-            if (attacker.Class.ClassName != "Paladin") return classBonus;
-            if (target.Alignment == ICharacter.Alignments.Evil)
+            if (attacker.Classes == null) return classBonus;
+            var firstOrDefault = attacker.Classes.FirstOrDefault();
+            if (firstOrDefault != null && firstOrDefault.ClassName != "Paladin") return classBonus;
+            if (target.Alignment == Alignments.Evil)
                 classBonus = 2;
             
             return classBonus;
@@ -41,10 +43,10 @@ namespace Prototyping
         private static int CalculateRaceBonus(ICharacter attacker, ICharacter target)
         {
             var raceBonus = 0;
-            if (attacker.Race.RaceName != "Dwarf") return raceBonus;
-            if (target.Race.RaceName != "Orc") return raceBonus;
-                raceBonus = 2;
-
+            if (attacker.Races == null) return raceBonus;
+            if (attacker.Races.Single().RaceName != "Dwarf") return raceBonus;
+            if (target.Races.Single().RaceName != "Orc") return raceBonus;
+            raceBonus = 2;
             return raceBonus;
         }
 
@@ -205,7 +207,7 @@ public class CombatTests
     [TestMethod]
     public void RoguesDoTripleDamageOnCrit()
     {
-        _attacker.Class = new Rogue(_attacker);
+        _attacker = new Rogue(_attacker);
         //var attack = new Attack(CritRoll, _attacker, _target);
         _attacker.Attack(CritRoll, _target);
         Assert.AreEqual(3, _target.CurrentDamage);
@@ -216,7 +218,7 @@ public class CombatTests
     {
         var abilities = new AbilityScores(dexterity: 12);
         var dexterousEnemy = new BaseCharacter(abilities);
-        _attacker.Class = new Rogue(_attacker);
+        _attacker = new Rogue(_attacker);
         //var attack = new Attack(EqualRoll+1, _attacker, dexterousEnemy);
         var hit = _attacker.Attack(EqualRoll + 1, dexterousEnemy);
         Assert.IsTrue(hit);
@@ -226,8 +228,8 @@ public class CombatTests
     public void RoguesAddDexInsteadOfStrengthToAttacks()
     {
         var abilities = new AbilityScores(dexterity: 12);
-        var attacker = new BaseCharacter(abilities);
-        attacker.Class = new Rogue(attacker);
+        ICharacter attacker = new BaseCharacter(abilities);
+        attacker = new Rogue(attacker);
         //var attack = new Attack(EqualRoll, attacker, _target);
         var hit = attacker.Attack(EqualRoll, _target);
         Assert.IsTrue(hit);
