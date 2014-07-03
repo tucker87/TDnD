@@ -51,6 +51,9 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Character.cs" />
+    <Compile Include="Abilities.cs" />
+    <Compile Include="Races.cs" />
+    <Compile Include="Classes.cs" />
     <Compile Include="Combat.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
