@@ -7,30 +7,28 @@ namespace Prototyping
 {
     public interface ICharacter
     {
-        int HitPoints { get; }
+        Alignments Alignment { get; set; }
+        Abilities Abilities { get; set; }
         int ArmorClass { get; }
-        int FlatFootedArmorClass { get; }
-        int Level { get; }
-        string Name { get; set; }
-        List<Class> Classes { get; }
-        List<Race> Races { get; }
-        bool IsDead { get; set; }
-        int BaseDamage { get; set; }
         int AttackBonusMod { get; set; }
-        int CritMultiplier { get; set; }
         bool AttacksFlatFootedAc { get; set; }
         int AttackPerLevelDivisor { get; set; }
+        int BaseDamage { get; set; }
         int BaseHitPoints { get; set; }
-
-        Abilities Abilities { get; set; }
-        
-        Alignments Alignment { get; set; }
+        List<Class> Classes { get; }
+        int CritMultiplier { get; set; }
         int CurrentDamage { get; set; }
         int Experience { get; set; }
-        
+        int FlatFootedArmorClass { get; }
+        int HitPoints { get; }
+        bool IsDead { get; set; }
+        int Level { get; }
+        string Name { get; set; }
+        List<Race> Races { get; }
+
+        bool Attack(int roll, ICharacter target);
         void GainExperience(int xp);
         void TakeDamage(int damage);
-        bool Attack(int roll, ICharacter target);
     }
 
     public enum Alignments { Good, Neutral, Evil }

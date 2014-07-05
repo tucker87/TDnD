@@ -14,7 +14,7 @@ namespace Prototyping
 
         public Abilities Abilities { get; set; }
         public Alignments Alignment { get; set; }
-        public virtual int ArmorClass { get { throw new System.NotImplementedException(); } }
+        public virtual int ArmorClass { get { return _character.ArmorClass; } }
         public int AttackBonusMod { get; set; }
         public int AttackPerLevelDivisor { get; set; }
         public bool AttacksFlatFootedAc { get; set; }
@@ -30,7 +30,8 @@ namespace Prototyping
         public int Level { get; set; }
         public string Name { get; set; }
         public List<Race> Races { get; set; }
-
+        public string ClassName { get; set; }
+        
         public bool Attack(int roll, ICharacter target)
         {
             return _character.Attack(roll, target);
@@ -45,7 +46,7 @@ namespace Prototyping
             _character.TakeDamage(damage);
         }
 
-        public string ClassName = "";
+        
     }
 
     public class Fighter : Class
@@ -71,7 +72,7 @@ namespace Prototyping
 
     public class Monk : Class
     {
-        private ICharacter _character;
+        private readonly ICharacter _character;
         public Monk(ICharacter character)
             : base(character)
         {

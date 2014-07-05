@@ -16,15 +16,30 @@ namespace Prototyping
         public string RaceName { get; set; }
 
         public virtual int ArmorClass { get { return _character.ArmorClass; } }
+        public virtual Abilities Abilities
+        {
+            get { return _character.Abilities; }
+            set { _character.Abilities = value; }
+        }
+
         public int FlatFootedArmorClass { get; set; }
+
         public int Level { get; set; }
+
         public string Name { get; set; }
+
         public List<Class> Classes { get { return _character.Classes; } }
+
         public List<Race> Races { get { return _character.Races; } }
+
         public bool IsDead { get; set; }
+
         public int BaseDamage { get; set; }
+
         public int AttackBonusMod { get; set; }
+
         public int CritMultiplier { get; set; }
+
         public bool AttacksFlatFootedAc { get; set; }
 
         public int AttackPerLevelDivisor
@@ -32,12 +47,8 @@ namespace Prototyping
             get { return _character.AttackPerLevelDivisor; }
             set { _character.AttackPerLevelDivisor = value; }
         }
+
         public int BaseHitPoints { get; set; }
-        public Abilities Abilities
-        {
-            get { return _character.Abilities; }
-            set { _character.Abilities = value; }
-        }
 
         public Alignments Alignment { get; set; }
         public int CurrentDamage { get; set; }
@@ -101,6 +112,28 @@ namespace Prototyping
             RaceName = "Dwarf";
             character.Races.Clear();
             character.Races.Add(this);
+        }
+    }
+
+    public class Elf : Race
+    {
+        private readonly ICharacter _character;
+
+        public Elf(ICharacter character)
+            : base(character)
+        {
+            _character = character;
+            character.Abilities.Dexterity.Score += 1;
+            character.Abilities.Constitution.Score -= 1;
+        }
+
+        public override int ArmorClass
+        {
+            get
+            {
+                if 
+                return base.ArmorClass;
+            }
         }
     }
 }
@@ -191,3 +224,39 @@ public class DwarfTests
         Assert.IsTrue(attack.IsHit);
     }
 }
+
+[TestClass]
+public class ElfTests
+{
+    private ICharacter _character;
+
+    [TestInitialize]
+    public void Initialize()
+    {
+        _character = new BaseCharacter();
+        _character = new Elf(_character);
+    }
+
+    [TestMethod]
+    public void ElvesGetOneBousDex()
+    {
+        Assert.AreEqual(11, _character.Abilities.Dexterity.Score);
+    }
+
+    [TestMethod]
+    public void ElvesLoseOneConstitution()
+    {
+        Assert.AreEqual(9, _character.Abilities.Constitution.Score);
+    }
+
+    [TestMethod]
+    public void ElvesGainTwoAcWhenAttackedByOrcs()
+    {
+        var orcEnemy = new Orc(new BaseCharacter());
+
+        var attack = new Attack(12, orcEnemy, _character);
+
+        Assert.IsFalse(attack.IsHit);
+    }
+}
+

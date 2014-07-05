@@ -95,7 +95,7 @@ public class CombatTests
     [TestMethod]
     public void AnAttackLessThanArmorClassMisses()
     {
-        var hit = _attacker.Attack(LowRoll ,_target);
+        var hit = _attacker.Attack(LowRoll, _target);
         Assert.IsFalse(hit);
     }
 
