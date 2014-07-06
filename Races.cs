@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Prototyping;
 
@@ -7,58 +8,42 @@ namespace Prototyping
     public abstract class Race : ICharacter
     {
         private readonly ICharacter _character;
+        protected Race(ICharacter character) { _character = character; }
 
-        protected Race(ICharacter character)
-        {
-            _character = character;
-        }
-
-        public string RaceName { get; set; }
-
-        public virtual int ArmorClass { get { return _character.ArmorClass; } }
-        public virtual Abilities Abilities
+        public Abilities Abilities
         {
             get { return _character.Abilities; }
             set { _character.Abilities = value; }
         }
-
-        public int FlatFootedArmorClass { get; set; }
-
-        public int Level { get; set; }
-
-        public string Name { get; set; }
-
-        public List<Class> Classes { get { return _character.Classes; } }
-
-        public List<Race> Races { get { return _character.Races; } }
-
-        public bool IsDead { get; set; }
-
-        public int BaseDamage { get; set; }
-
         public int AttackBonusMod { get; set; }
-
-        public int CritMultiplier { get; set; }
-
-        public bool AttacksFlatFootedAc { get; set; }
-
         public int AttackPerLevelDivisor
         {
             get { return _character.AttackPerLevelDivisor; }
             set { _character.AttackPerLevelDivisor = value; }
         }
 
+        public int BaseDamage { get; set; }
         public int BaseHitPoints { get; set; }
-
-        public Alignments Alignment { get; set; }
-        public int CurrentDamage { get; set; }
+        public List<Class> Classes { get { return _character.Classes; } }
+        public int CurrentDamage { get { return _character.CurrentDamage; } set { _character.CurrentDamage = value; } }
         public int Experience { get; set; }
+        public int FlatFootedArmorClass { get; set; }
+        public int Level { get; set; }
+        public string Name { get; set; }
+        public string RaceName { get; set; }
+        public List<Race> Races{ get { return _character.Races; } }
         public int HitPoints { get { return _character.HitPoints; } }
+        public bool IsDead { get; set; }
+        public int CritMultiplier { get; set; }
+        public bool AttacksFlatFootedAc { get; set; }
+        public Alignments Alignment { get; set; }
+        public Weapon Weapon { get { return _character.Weapon; } set { _character.Weapon = value; } }
 
         public bool Attack(int roll, ICharacter target)
         {
             return _character.Attack(roll, target);
         }
+
         public void GainExperience(int xp)
         {
             _character.GainExperience(xp);
@@ -67,6 +52,22 @@ namespace Prototyping
         public void TakeDamage(int damage)
         {
             _character.TakeDamage(damage);
+        }
+        
+        public virtual int GetArmorClass()
+        {
+            return _character.GetArmorClass();
+        }
+
+        public virtual int GetArmorClass(Race enemyRace)
+        {
+            return _character.GetArmorClass(enemyRace);
+        }
+
+        public void RemoveHumanRace(ICharacter character)
+        {
+            if (character.Races.First().RaceName != "Human") return;
+            character.Races.Clear();
         }
 
     }
@@ -84,6 +85,7 @@ namespace Prototyping
     public class Orc : Race
     {
         private readonly ICharacter _character;
+
         public Orc(ICharacter character)
             : base(character)
         {
@@ -96,9 +98,15 @@ namespace Prototyping
             character.Races.Clear();
             character.Races.Add(this);
         }
-        public override int ArmorClass
+
+        public override int GetArmorClass()
         {
-            get { return _character.ArmorClass + 2; }
+            return base.GetArmorClass() + 2;
+        }
+
+        public override int GetArmorClass(Race enemyRace)
+        {
+            return base.GetArmorClass(enemyRace) + 2;
         }
     }
 
@@ -110,7 +118,7 @@ namespace Prototyping
             character.Abilities.Constitution.Score += 1;
             character.Abilities.Charisma.Score += -1;
             RaceName = "Dwarf";
-            character.Races.Clear();
+            RemoveHumanRace(character);
             character.Races.Add(this);
         }
     }
@@ -125,15 +133,50 @@ namespace Prototyping
             _character = character;
             character.Abilities.Dexterity.Score += 1;
             character.Abilities.Constitution.Score -= 1;
+            RaceName = "Elf";
+            RemoveHumanRace(character);
+            character.Races.Add(this);
         }
 
-        public override int ArmorClass
+        public override int GetArmorClass()
         {
-            get
-            {
-                if 
-                return base.ArmorClass;
-            }
+            return _character.GetArmorClass();
+        }
+
+        public override int GetArmorClass(Race enemyRace)
+        {
+
+            if (enemyRace.RaceName == "Orc")
+                return _character.GetArmorClass(enemyRace) + 2;
+            return _character.GetArmorClass(enemyRace);
+        }
+    }
+
+    public class Halfling : Race
+    {
+        private readonly ICharacter _character;
+        public Halfling(ICharacter character)
+            : base(character)
+        {
+            _character = character;
+            character.Abilities.Dexterity.Score += 1;
+            character.Abilities.Strength.Score -= 1;
+            RaceName = "Halfling";
+            RemoveHumanRace(character);
+            character.Races.Add(this);
+        }
+
+        public override int GetArmorClass()
+        {
+            return _character.GetArmorClass();
+        }
+
+        public override int GetArmorClass(Race enemyRace)
+        {
+
+            if (enemyRace.RaceName != "Halfling")
+                return _character.GetArmorClass(enemyRace) + 2;
+            return _character.GetArmorClass(enemyRace);
         }
     }
 }
@@ -177,7 +220,7 @@ public class OrcTests
     [TestMethod]
     public void OrcsGetTwoBonusAc()
     {
-        Assert.AreEqual(12, _character.ArmorClass);
+        Assert.AreEqual(12, _character.GetArmorClass());
     }
 }
 
@@ -189,8 +232,7 @@ public class DwarfTests
     [TestInitialize]
     public void Initialize()
     {
-        _character = new BaseCharacter();
-        _character = new Dwarf(_character);
+        _character = new Dwarf(new BaseCharacter());
     }
 
     [TestMethod]
@@ -217,10 +259,8 @@ public class DwarfTests
     [TestMethod]
     public void DwarvesGetTwoAttackWhenTargetIsOrc()
     {
-        ICharacter enemy = new BaseCharacter();
-        enemy = new Orc(enemy);
-        const int justEnoughToMissByTwoTakingOrcAcBonusIntoAccount = 11;
-        var attack = new Attack(justEnoughToMissByTwoTakingOrcAcBonusIntoAccount, _character, enemy);
+        ICharacter enemy = new Orc(new BaseCharacter());
+        var attack = new Attack(11, _character, enemy);
         Assert.IsTrue(attack.IsHit);
     }
 }
@@ -260,3 +300,46 @@ public class ElfTests
     }
 }
 
+[TestClass]
+public class HalflingTests
+{
+    private ICharacter _character;
+
+    [TestInitialize]
+    public void Initialize()
+    {
+        _character = new Halfling(new BaseCharacter());
+    }
+
+    [TestMethod]
+    public void HalflingsGetOneBousDex()
+    {
+        Assert.AreEqual(11, _character.Abilities.Dexterity.Score);
+    }
+
+    [TestMethod]
+    public void HalflingsLoseOneStr()
+    {
+        Assert.AreEqual(9, _character.Abilities.Strength.Score);
+    }
+
+    [TestMethod]
+    public void HalflingsGainsTwoAcWhenAttackedByNonHalfling()
+    {
+        var orc = new Orc(new BaseCharacter());
+        var elf = new Elf(new BaseCharacter());
+        var dwarf = new Dwarf(new BaseCharacter());
+        var halfling = new Halfling(new BaseCharacter());
+
+        var thePoorTarget = new Halfling(new BaseCharacter());
+
+        var attack = orc.Attack(12, thePoorTarget);
+        Assert.IsFalse(attack);
+        attack = elf.Attack(12, thePoorTarget);
+        Assert.IsFalse(attack);
+        attack = dwarf.Attack(12, thePoorTarget);
+        Assert.IsFalse(attack);
+        attack = halfling.Attack(12, thePoorTarget);
+        Assert.IsTrue(attack);
+    }
+}
