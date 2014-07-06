@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prototyping", "Prototyping.csproj", "{975A060B-56E0-49AF-B020-E7D402BF434D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDnD", "TDnD.csproj", "{975A060B-56E0-49AF-B020-E7D402BF434D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
