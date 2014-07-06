@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Prototyping;
@@ -9,7 +10,6 @@ namespace Prototyping
     {
         Alignments Alignment { get; set; }
         Abilities Abilities { get; set; }
-        int ArmorClass { get; }
         int AttackBonusMod { get; set; }
         bool AttacksFlatFootedAc { get; set; }
         int AttackPerLevelDivisor { get; set; }
@@ -25,10 +25,15 @@ namespace Prototyping
         int Level { get; }
         string Name { get; set; }
         List<Race> Races { get; }
+        Weapon Weapon { get; set; }
 
         bool Attack(int roll, ICharacter target);
         void GainExperience(int xp);
+        int GetArmorClass();
+        int GetArmorClass(Race enemyRace);
         void TakeDamage(int damage);
+
+        
     }
 
     public enum Alignments { Good, Neutral, Evil }
@@ -78,12 +83,13 @@ namespace Prototyping
             BaseDamage = 1;
             Races = new List<Race> {new Human(this)};
             Classes = new List<Class>();
-
+            Weapon = new Fists();
+            Classes = new List<Class> {new Peasant(this)};
         }
 
         private const int BaseAbilityScore = 10;
         private const int BaseArmorClass = 10;
-        //private readonly Attack _attack = new Attack();
+
         private int BonusHpFromCon
         {
             get
@@ -95,24 +101,30 @@ namespace Prototyping
             }
         }
 
-        public int HitPoints { get { return (BaseHitPoints + BonusHpFromCon) * Level; } }
-        public int ArmorClass { get { return BaseArmorClass + Abilities.Dexterity.Modifier; } }
-        public string Name { get; set; }
-        public List<Class> Classes { get; set; }
-        public List<Race> Races { get; set; }
-        public bool IsDead { get; set; }
-        public int BaseDamage { get; set; }
         public int AttackBonusMod { get; set; }
-        public int CritMultiplier { get; set; }
-        public bool AttacksFlatFootedAc { get; set; }
-        public int AttackPerLevelDivisor { get; set; }
-        public int BaseHitPoints { get; set; }
         public Abilities Abilities { get; set; }
         public Alignments Alignment { get; set; }
+        public bool AttacksFlatFootedAc { get; set; }
+        public int AttackPerLevelDivisor { get; set; }
+        public int BaseDamage { get; set; }
+        public int BaseHitPoints { get; set; }
+        private int _criticalMultiplier ;
+        public int CritMultiplier
+        {
+            get { return Math.Max(_criticalMultiplier, Weapon.CriticalMultiplier); }
+            set { _criticalMultiplier = value; }
+        }
+
+        public List<Class> Classes { get; set; }
         public int CurrentDamage { get; set; }
         public int Experience { get; set; }
         public int FlatFootedArmorClass { get { return BaseArmorClass; } }
+        public int HitPoints { get { return (BaseHitPoints + BonusHpFromCon) * Level; } }
+        public bool IsDead { get; set; }
         public int Level { get { return (Experience / 1000) + 1; } }
+        public List<Race> Races { get; set; }
+        public string Name { get; set; }
+        public Weapon Weapon { get; set; }
 
         public bool Attack(int roll, ICharacter target)
         {
@@ -140,11 +152,17 @@ namespace Prototyping
         {
             Experience += xp;
         }
-    }
-    
-    
 
-    
+        public int GetArmorClass()
+        {
+            return BaseArmorClass + Abilities.Dexterity.Modifier;
+        }
+
+        public int GetArmorClass(Race enemyRace)
+        {
+            return BaseArmorClass + Abilities.Dexterity.Modifier;
+        }
+    }
 }
 
 [TestClass]
@@ -209,7 +227,7 @@ public class CharacterTesting
         {
             var abilities = new AbilityScores(dexterity: 14);
             var dexterousAttacker = new BaseCharacter(abilities);
-            Assert.AreEqual(12, dexterousAttacker.ArmorClass);
+            Assert.AreEqual(12, dexterousAttacker.GetArmorClass());
         }
 
         [TestMethod]

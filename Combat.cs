@@ -10,11 +10,13 @@ namespace Prototyping
         {
             var attackTotal = CalculateAttack(roll, attacker, target);
 
-            var targetAc = attacker.AttacksFlatFootedAc ? target.FlatFootedArmorClass : target.ArmorClass;
+            var targetAc = attacker.AttacksFlatFootedAc 
+                ? target.FlatFootedArmorClass 
+                : target.GetArmorClass(attacker.Races.First());
 
             if (!CheckIfHit(attackTotal, targetAc)) return;
             IsHit = true;
-            target.TakeDamage(CalculateDamage(roll, attacker));
+            target.TakeDamage(CalculateDamage(roll, attacker, target));
             attacker.GainExperience(10);
         }
 
@@ -26,7 +28,8 @@ namespace Prototyping
             var classBonus = CalculateClassBonus(attacker, target);
             //Special Cases for Races (Refactor when possible)
             var raceBonus = CalculateRaceBonus(attacker, target);
-            return roll + attackerAbilityMod + classBonus + raceBonus + (attacker.Level / attacker.AttackPerLevelDivisor);
+            var weaponBonus = attacker.Weapon.GetBonusAttack(target);
+            return roll + attackerAbilityMod + classBonus + raceBonus + (attacker.Level / attacker.AttackPerLevelDivisor) + weaponBonus;
         }
 
         private static int CalculateClassBonus(ICharacter attacker, ICharacter target)
@@ -56,10 +59,11 @@ namespace Prototyping
             return attackTotal > targetAc;
         }
 
-        public int CalculateDamage(int roll, ICharacter attacker)
+        public int CalculateDamage(int roll, ICharacter attacker, ICharacter target)
         {
             var attackerStrengthMod = attacker.Abilities.Strength.Modifier;
-            var damage = attacker.BaseDamage + attackerStrengthMod;
+            var weaponBonus = attacker.Weapon.GetBonusDamage(target);
+            var damage = attacker.BaseDamage + attackerStrengthMod + weaponBonus;
             if (roll == 20)
                 damage = damage * attacker.CritMultiplier;
             if (damage < 1)
