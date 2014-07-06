@@ -16,6 +16,7 @@ namespace Prototyping
 
         public Abilities Abilities { get; set; }
         public Alignments Alignment { get; set; }
+        public Armor Armor { get { return _character.Armor; } set { _character.Armor = value; } }
         public int AttackBonusMod { get; set; }
         public int AttackPerLevelDivisor { get; set; }
         public bool AttacksFlatFootedAc { get; set; }
@@ -24,10 +25,12 @@ namespace Prototyping
         public List<Class> Classes { get { return _character.Classes; } }
         public int CritMultiplier { get; set; }
         public int CurrentDamage { get; set; }
+        public int DamageReduction { get { return _character.Armor.GetBonusDamageReduction(); } }
         public int Experience { get; set; }
         public int FlatFootedArmorClass { get; set; }
         public int HitPoints { get { return _character.HitPoints; } }
         public bool IsDead { get; set; }
+        public List<Item> Items { get { return _character.Items; } set { _character.Items = value; } } 
         public int Level { get; set; }
         public string Name { get; set; }
         public List<Race> Races { get; set; }

@@ -10,6 +10,7 @@ namespace Prototyping
     {
         Alignments Alignment { get; set; }
         Abilities Abilities { get; set; }
+        Armor Armor { get; set; }
         int AttackBonusMod { get; set; }
         bool AttacksFlatFootedAc { get; set; }
         int AttackPerLevelDivisor { get; set; }
@@ -18,10 +19,12 @@ namespace Prototyping
         List<Class> Classes { get; }
         int CritMultiplier { get; set; }
         int CurrentDamage { get; set; }
+        int DamageReduction { get; }
         int Experience { get; set; }
         int FlatFootedArmorClass { get; }
         int HitPoints { get; }
         bool IsDead { get; set; }
+        List<Item> Items { set; get; }
         int Level { get; }
         string Name { get; set; }
         List<Race> Races { get; }
@@ -85,6 +88,8 @@ namespace Prototyping
             Classes = new List<Class>();
             Weapon = new Fists();
             Classes = new List<Class> {new Peasant(this)};
+            Armor = new ClothArmor();
+            Items = new List<Item>();
         }
 
         private const int BaseAbilityScore = 10;
@@ -104,6 +109,7 @@ namespace Prototyping
         public int AttackBonusMod { get; set; }
         public Abilities Abilities { get; set; }
         public Alignments Alignment { get; set; }
+        public Armor Armor { get; set; }
         public bool AttacksFlatFootedAc { get; set; }
         public int AttackPerLevelDivisor { get; set; }
         public int BaseDamage { get; set; }
@@ -117,10 +123,12 @@ namespace Prototyping
 
         public List<Class> Classes { get; set; }
         public int CurrentDamage { get; set; }
+        public int DamageReduction { get { return Armor.GetBonusDamageReduction(); } }
         public int Experience { get; set; }
         public int FlatFootedArmorClass { get { return BaseArmorClass; } }
         public int HitPoints { get { return (BaseHitPoints + BonusHpFromCon) * Level; } }
         public bool IsDead { get; set; }
+        public List<Item> Items { get; set; } 
         public int Level { get { return (Experience / 1000) + 1; } }
         public List<Race> Races { get; set; }
         public string Name { get; set; }
@@ -130,20 +138,11 @@ namespace Prototyping
         {
             var attack = new Attack(roll, this, target);
             return attack.IsHit;
-            //var attackTotal = _attack.CalculateAttack(roll, this);
-            //var targetAc = AttacksFlatFootedAc ? target.FlatFootedArmorClass : target.ArmorClass;
-            //var hit = _attack.CheckIfHit(attackTotal, targetAc);
-            //if (!hit) return false;
-
-            //var damage = _attack.CalculateDamage(roll, this);
-            //target.TakeDamage(damage);
-            //GainExperience(10);
-            //return true;
         }
 
         public void TakeDamage(int damage)
         {
-            CurrentDamage += damage;
+            CurrentDamage += (damage - DamageReduction);
             if (HitPoints - CurrentDamage <= 0)
                 IsDead = true;
         }
@@ -155,12 +154,14 @@ namespace Prototyping
 
         public int GetArmorClass()
         {
-            return BaseArmorClass + Abilities.Dexterity.Modifier;
+            var bonusFromItems = Items.Sum(item => item.GetBonusArmorClass());
+            return BaseArmorClass + Abilities.Dexterity.Modifier + Armor.GetBonusArmorClass() + bonusFromItems;
         }
 
         public int GetArmorClass(Race enemyRace)
         {
-            return BaseArmorClass + Abilities.Dexterity.Modifier;
+            var bonusFromItems = Items.Sum(item => item.GetBonusArmorClass());
+            return BaseArmorClass + Abilities.Dexterity.Modifier + Armor.GetBonusArmorClass() + bonusFromItems;
         }
     }
 }

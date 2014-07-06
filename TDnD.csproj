@@ -50,8 +50,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Armor.cs" />
     <Compile Include="Character.cs" />
     <Compile Include="Abilities.cs" />
+    <Compile Include="Item.cs" />
     <Compile Include="Races.cs" />
     <Compile Include="Classes.cs" />
     <Compile Include="Combat.cs" />

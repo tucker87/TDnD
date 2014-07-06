@@ -29,7 +29,8 @@ namespace Prototyping
             //Special Cases for Races (Refactor when possible)
             var raceBonus = CalculateRaceBonus(attacker, target);
             var weaponBonus = attacker.Weapon.GetBonusAttack(target);
-            return roll + attackerAbilityMod + classBonus + raceBonus + (attacker.Level / attacker.AttackPerLevelDivisor) + weaponBonus;
+            var armorBonus = attacker.Armor.GetBonusAttack();
+            return roll + attackerAbilityMod + classBonus + raceBonus + (attacker.Level / attacker.AttackPerLevelDivisor) + weaponBonus + armorBonus;
         }
 
         private static int CalculateClassBonus(ICharacter attacker, ICharacter target)

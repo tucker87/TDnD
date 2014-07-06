@@ -1,0 +1,5 @@
+D:\Home\Documents\GitHub\TDnD\obj\Debug\TDnD.csprojResolveAssemblyReference.cache
+D:\Home\Documents\GitHub\TDnD\obj\Debug\Prototyping.dll
+D:\Home\Documents\GitHub\TDnD\obj\Debug\Prototyping.pdb
+D:\Home\Documents\GitHub\TDnD\bin\Debug\Prototyping.dll
+D:\Home\Documents\GitHub\TDnD\bin\Debug\Prototyping.pdb

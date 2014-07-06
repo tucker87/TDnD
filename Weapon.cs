@@ -57,12 +57,12 @@ namespace Prototyping
         }
     }
 
-    public class Elven : Weapon
+    public class ElvenWeapon : Weapon
     {
         private readonly int _bonus;
         private readonly Weapon _weapon;
         private readonly ICharacter _character;
-        public Elven(int bonus, Weapon weapon, ICharacter character)
+        public ElvenWeapon(int bonus, Weapon weapon, ICharacter character)
         {
             _bonus = bonus;
             _weapon = weapon;
@@ -229,7 +229,7 @@ public class ElvenLongSwordTests
     public void Initialize()
     {
         _character = new BaseCharacter();
-        _character.Weapon = new Elven(1, new LongSword(), _character.Races.First());
+        _character.Weapon = new ElvenWeapon(1, new LongSword(), _character.Races.First());
         _enemy = new BaseCharacter();
     }
 
