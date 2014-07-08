@@ -1,4 +1,4 @@
-﻿namespace Prototyping
+﻿namespace TDnD
 {
     public class AbilityScores
     {

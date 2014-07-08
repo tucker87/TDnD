@@ -6,8 +6,8 @@
     <ProjectGuid>{975A060B-56E0-49AF-B020-E7D402BF434D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Prototyping</RootNamespace>
-    <AssemblyName>Prototyping</AssemblyName>
+    <RootNamespace>TDnDTests</RootNamespace>
+    <AssemblyName>TDnDTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -50,15 +50,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Armor.cs" />
-    <Compile Include="Character.cs" />
-    <Compile Include="Abilities.cs" />
-    <Compile Include="Item.cs" />
+    <Compile Include="ArmorTests.cs" />
+    <Compile Include="CharacterTests.cs" />
+    <Compile Include="ItemTests.cs" />
     <Compile Include="Races.cs" />
-    <Compile Include="Classes.cs" />
-    <Compile Include="Combat.cs" />
+    <Compile Include="ClassesTests.cs" />
+    <Compile Include="CombatTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Weapon.cs" />
+    <Compile Include="WeaponTests.cs" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
