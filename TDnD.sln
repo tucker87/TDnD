@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDnD", "TDnD.csproj", "{975A060B-56E0-49AF-B020-E7D402BF434D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDnDTests", "TDnDTests.csproj", "{975A060B-56E0-49AF-B020-E7D402BF434D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TDnD", "ConsoleApplication1\TDnD.csproj", "{9B2EB23B-2010-4F6F-A719-0AC22669FD0E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{975A060B-56E0-49AF-B020-E7D402BF434D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{975A060B-56E0-49AF-B020-E7D402BF434D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{975A060B-56E0-49AF-B020-E7D402BF434D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B2EB23B-2010-4F6F-A719-0AC22669FD0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B2EB23B-2010-4F6F-A719-0AC22669FD0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B2EB23B-2010-4F6F-A719-0AC22669FD0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B2EB23B-2010-4F6F-A719-0AC22669FD0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

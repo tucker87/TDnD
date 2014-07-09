@@ -53,11 +53,17 @@
     <Compile Include="ArmorTests.cs" />
     <Compile Include="CharacterTests.cs" />
     <Compile Include="ItemTests.cs" />
-    <Compile Include="Races.cs" />
+    <Compile Include="RacesTests.cs" />
     <Compile Include="ClassesTests.cs" />
     <Compile Include="CombatTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WeaponTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ConsoleApplication1\TDnD.csproj">
+      <Project>{9B2EB23B-2010-4F6F-A719-0AC22669FD0E}</Project>
+      <Name>TDnD</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
