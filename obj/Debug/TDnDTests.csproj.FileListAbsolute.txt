@@ -1,0 +1,7 @@
+D:\Home\Documents\GitHub\TDnD\bin\Debug\TDnDTests.dll
+D:\Home\Documents\GitHub\TDnD\bin\Debug\TDnDTests.pdb
+D:\Home\Documents\GitHub\TDnD\bin\Debug\TDnD.exe
+D:\Home\Documents\GitHub\TDnD\bin\Debug\TDnD.pdb
+D:\Home\Documents\GitHub\TDnD\obj\Debug\TDnDTests.csprojResolveAssemblyReference.cache
+D:\Home\Documents\GitHub\TDnD\obj\Debug\TDnDTests.dll
+D:\Home\Documents\GitHub\TDnD\obj\Debug\TDnDTests.pdb

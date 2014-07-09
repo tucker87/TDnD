@@ -1,0 +1,6 @@
+D:\Home\Documents\GitHub\TDnD\ConsoleApplication1\bin\Debug\TDnD.exe.config
+D:\Home\Documents\GitHub\TDnD\ConsoleApplication1\bin\Debug\TDnD.exe
+D:\Home\Documents\GitHub\TDnD\ConsoleApplication1\bin\Debug\TDnD.pdb
+D:\Home\Documents\GitHub\TDnD\ConsoleApplication1\obj\Debug\TDnD.csprojResolveAssemblyReference.cache
+D:\Home\Documents\GitHub\TDnD\ConsoleApplication1\obj\Debug\TDnD.exe
+D:\Home\Documents\GitHub\TDnD\ConsoleApplication1\obj\Debug\TDnD.pdb
